@@ -41,15 +41,40 @@ def load_rest_data(db):
         d[name] = nest
     
     cur.close()
+    curCategory.close()
+    curBuilding.close()
     return d
 
 def plot_rest_categories(db):
-    """
-    This function accepts a file name of a database as a parameter and returns a dictionary. The keys should be the
-    restaurant categories and the values should be the number of restaurants in each category. The function should
-    also create a bar chart with restaurant categories and the count of number of restaurants in each category.
-    """
-    pass
+    d = {}
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db)
+    cur = conn.cursor()
+    curCategory = conn.cursor()
+
+    categories = curCategory.execute("SELECT * FROM categories")
+    for row in categories:
+        d[row[1]] = 0
+
+    cur.execute("SELECT * FROM restaurants")
+    for row in cur:
+        category_id = row[2]
+
+        categories = curCategory.execute("SELECT * FROM categories")
+        for row in categories:
+            if category_id == row[0]:
+                category = row[1]
+        
+        d[category] += 1
+    
+    cur.close()
+    curCategory.close()
+
+    x = list(d.keys())
+    y = list(d.values())
+    plt.bar(range(len(x)), y, tick_label=x)
+
+    return d
 
 def find_rest_in_building(building_num, db):
     '''
