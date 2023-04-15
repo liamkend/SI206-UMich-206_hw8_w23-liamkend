@@ -1,7 +1,7 @@
-# Your name: 
-# Your student id:
-# Your email:
-# List who you have worked with on this homework:
+# Your name: Liam Kendall
+# Your student id: 6069 5995
+# Your email: liamkend@umich.edu
+# List who you have worked with on this homework: Zack Eisman
 
 import matplotlib.pyplot as plt
 import os
@@ -9,13 +9,39 @@ import sqlite3
 import unittest
 
 def load_rest_data(db):
-    """
-    This function accepts the file name of a database as a parameter and returns a nested
-    dictionary. Each outer key of the dictionary is the name of each restaurant in the database, 
-    and each inner key is a dictionary, where the key:value pairs should be the category, 
-    building, and rating for the restaurant.
-    """
-    pass
+    d = {}
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db)
+    cur = conn.cursor()
+    curCategory = conn.cursor()
+    curBuilding = conn.cursor()
+
+    cur.execute("SELECT * FROM restaurants")
+    for row in cur:
+        nest = {}
+        name = row[1]
+        category_id = row[2]
+        building_id = row[3]
+        rating = row[4]
+
+        categories = curCategory.execute("SELECT * FROM categories")
+        for row in categories:
+            if category_id == row[0]:
+                category = row[1]
+
+        buildings = curBuilding.execute("SELECT * FROM buildings")
+        for row in buildings:
+            if building_id == row[0]:
+                building = row[1]
+
+        nest['category'] = category
+        nest['building'] = building
+        nest['rating'] = rating
+        
+        d[name] = nest
+    
+    cur.close()
+    return d
 
 def plot_rest_categories(db):
     """
@@ -49,7 +75,11 @@ def get_highest_rating(db): #Do this through DB as well
 
 #Try calling your functions here
 def main():
-    pass
+    db = 'South_U_Restaurants.db'
+    load_rest_data(db)
+    plot_rest_categories(db)
+    find_rest_in_building(1300, db)
+    get_highest_rating(db)
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
