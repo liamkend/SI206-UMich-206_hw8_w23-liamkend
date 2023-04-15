@@ -13,36 +13,12 @@ def load_rest_data(db):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db)
     cur = conn.cursor()
-    curCategory = conn.cursor()
-    curBuilding = conn.cursor()
 
-    cur.execute("SELECT * FROM restaurants")
+    cur.execute(f"SELECT restaurants.name, categories.category, buildings.building, restaurants.rating FROM restaurants JOIN buildings ON restaurants.building_id = buildings.id JOIN categories ON restaurants.category_id = categories.id")
     for row in cur:
-        nest = {}
-        name = row[1]
-        category_id = row[2]
-        building_id = row[3]
-        rating = row[4]
-
-        categories = curCategory.execute("SELECT * FROM categories")
-        for row in categories:
-            if category_id == row[0]:
-                category = row[1]
-
-        buildings = curBuilding.execute("SELECT * FROM buildings")
-        for row in buildings:
-            if building_id == row[0]:
-                building = row[1]
-
-        nest['category'] = category
-        nest['building'] = building
-        nest['rating'] = rating
-        
-        d[name] = nest
+        d[row[0]] = {'category': row[1], 'building': row[2], 'rating': row[3]}
     
     cur.close()
-    curCategory.close()
-    curBuilding.close()
     return d
 
 def plot_rest_categories(db):
@@ -78,11 +54,6 @@ def plot_rest_categories(db):
     return d
 
 def find_rest_in_building(building_num, db):
-    '''
-    This function accepts the building number and the filename of the database as parameters and returns a list of 
-    restaurant names. You need to find all the restaurant names which are in the specific building. The restaurants 
-    should be sorted by their rating from highest to lowest.
-    '''
     l = []
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db)
@@ -94,27 +65,12 @@ def find_rest_in_building(building_num, db):
 
     return l
 
-#EXTRA CREDIT
-def get_highest_rating(db): #Do this through DB as well
-    """
-    This function return a list of two tuples. The first tuple contains the highest-rated restaurant category 
-    and the average rating of the restaurants in that category, and the second tuple contains the building number 
-    which has the highest rating of restaurants and its average rating.
-
-    This function should also plot two barcharts in one figure. The first bar chart displays the categories 
-    along the y-axis and their ratings along the x-axis in descending order (by rating).
-    The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
-    in descending order (by rating).
-    """
-    pass
-
 #Try calling your functions here
 def main():
     db = 'South_U_Restaurants.db'
     load_rest_data(db)
     plot_rest_categories(db)
     find_rest_in_building(1300, db)
-    get_highest_rating(db)
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
@@ -158,10 +114,6 @@ class TestHW8(unittest.TestCase):
         self.assertIsInstance(restaurant_list, list)
         self.assertEqual(len(restaurant_list), 3)
         self.assertEqual(restaurant_list[0], 'BTB Burrito')
-
-    def test_get_highest_rating(self):
-        highest_rating = get_highest_rating('South_U_Restaurants.db')
-        self.assertEqual(highest_rating, self.highest_rating)
 
 if __name__ == '__main__':
     main()
